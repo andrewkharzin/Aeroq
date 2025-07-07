@@ -1,5 +1,6 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
+
   modules: [
     '@nuxt/eslint',
     '@nuxt/ui-pro',
@@ -8,6 +9,16 @@ export default defineNuxtConfig({
     '@nuxt/content',
     'nuxt-og-image'
   ],
+  imports: {
+    dirs: [
+      // Scan top-level composables
+      '~/composables',
+      // ... or scan composables nested one level deep with a specific name and file extension
+      '~/composables/*/index.{ts,js,mjs,mts}',
+      // ... or scan all composables within given directory
+      '~/composables/**'
+    ]
+  },
 
   devtools: {
     enabled: true
@@ -16,9 +27,10 @@ export default defineNuxtConfig({
   css: ['~/assets/css/main.css'],
 
   routeRules: {
-    '/api/**': {
-      cors: true
-    }
+    '/agent/**': { middleware: ['auth'] },
+    '/dashboard': { middleware: ['auth'] },
+    '/login': { middleware: ['anon'] },
+    '/register': { middleware: ['anon'] }
   },
 
   future: {

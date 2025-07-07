@@ -3,7 +3,8 @@ import * as z from 'zod'
 import type { FormSubmitEvent } from '@nuxt/ui'
 
 definePageMeta({
-  layout: 'auth'
+  layout: 'auth',
+  middleware: ['anon'] // Используем middleware для анонимных пользователей
 })
 
 useSeoMeta({
@@ -16,12 +17,52 @@ const user = useSupabaseUser()
 const toast = useToast()
 const isLoading = ref(false)
 
-// Redirect if already logged in
-watchEffect(() => {
-  if (user.value) {
-    navigateTo('/')
+// Функция для определения роли и перенаправления
+const redirectUserBasedOnRole = async () => {
+  try {
+    if (!user.value?.id) {
+      await new Promise(resolve => setTimeout(resolve, 300))
+      if (!user.value?.id) return navigateTo('/')
+    }
+
+    // Get user's role with proper error handling
+    const profileQuery = await supabase
+      .from('user_profiles')
+      .select('role_id, roles:role_id (name)')
+      .eq('user_id', user.value.id)
+      .single()
+
+    if (profileQuery.error) throw profileQuery.error
+
+    // Redirect airline agents
+    if (profileQuery.data?.roles?.name === 'airline_agent') {
+      const agentQuery = await supabase
+        .from('agents')
+        .select('id')
+        .eq('profile_id', user.value.id)
+        .single()
+
+      if (agentQuery.error) throw agentQuery.error
+      if (agentQuery.data?.id) {
+        return navigateTo(`/agent/${agentQuery.data.id}/dashboard`)
+      }
+    }
+
+    // Default redirect for others
+    return navigateTo('/')
+
+  } catch (error) {
+    console.error('Redirect error:', error)
+    return navigateTo('/')
   }
-})
+}
+
+// Обработчик успешного входа (для OAuth)
+watch(user, async (newUser) => {
+  if (newUser) {
+    await redirectUserBasedOnRole()
+  }
+}, { immediate: true })
 
 // Form configuration
 const fields = [{
@@ -64,10 +105,11 @@ type Schema = z.output<typeof schema>
 // Authentication methods
 async function signInWithProvider(provider: 'google' | 'github') {
   try {
+    isLoading.value = true
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
-        redirectTo: `${window.location.origin}/`
+        redirectTo: `${window.location.origin}/auth/callback`
       }
     })
 
@@ -78,6 +120,8 @@ async function signInWithProvider(provider: 'google' | 'github') {
       description: error instanceof Error ? error.message : 'Login failed',
       color: 'red'
     })
+  } finally {
+    isLoading.value = false
   }
 }
 
@@ -98,7 +142,8 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
       color: 'green'
     })
 
-    navigateTo('/')
+    // После успешного входа перенаправляем пользователя
+    await redirectUserBasedOnRole()
   } catch (error) {
     toast.add({
       title: 'Error',
