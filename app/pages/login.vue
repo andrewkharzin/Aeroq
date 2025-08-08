@@ -27,7 +27,7 @@ const redirectUserBasedOnRole = async () => {
 
     // Get user's role with proper error handling
     const profileQuery = await supabase
-      .from('user_profiles')
+      .from('user_profile')
       .select('role_id, roles:role_id (name)')
       .eq('user_id', user.value.id)
       .single()
@@ -35,7 +35,7 @@ const redirectUserBasedOnRole = async () => {
     if (profileQuery.error) throw profileQuery.error
 
     // Redirect airline agents
-    if (profileQuery.data?.roles?.name === 'airline_agent') {
+    if (profileQuery.data?.roles?.name === 'airline_manager') {
       const agentQuery = await supabase
         .from('agents')
         .select('id')
