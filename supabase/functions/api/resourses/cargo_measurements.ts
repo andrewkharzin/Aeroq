@@ -1,0 +1,63 @@
+import { z } from "https://esm.sh/zod@3.23.8";
+import type { ResourceDefinition } from "../core/types.ts";
+
+const cargoMeasurements: ResourceDefinition = {
+  name: "cargo_measurements",
+  table: "cargo_measurements",
+  key: "id",
+  selectable: [
+    "id",
+    "booking_id",
+    "total_pieces",
+    "total_weight_kg",
+    "total_volume_cbm",
+    "chargeable_weight_kg",
+    "volumetric_coefficient_id",
+    "max_length_cm",
+    "max_width_cm",
+    "max_height_cm",
+    "updated_at",
+    "created_by",
+    "owner_id",
+    "status",
+    "notes",
+    "verified_at",
+    "verified_by"
+  ],
+  relations: ["booking", "airline_volumetric_coefficients", "auth.users"],
+  defaultOrder: { column: "updated_at", desc: true },
+  createSchema: z.object({
+    booking_id: z.number().optional(),
+    total_pieces: z.number().int().default(0),
+    total_weight_kg: z.number().default(0),
+    total_volume_cbm: z.number().default(0),
+    chargeable_weight_kg: z.number().default(0),
+    volumetric_coefficient_id: z.number().optional(),
+    max_length_cm: z.number().int().default(0),
+    max_width_cm: z.number().int().default(0),
+    max_height_cm: z.number().int().default(0),
+    owner_id: z.string().uuid().optional(),
+    status: z.enum(["DRAFT", "CONFIRMED", "ARCHIVED"]).default("DRAFT"),
+    notes: z.string().optional(),
+    verified_by: z.string().uuid().optional(),
+  }),
+  updateSchema: z.object({
+    booking_id: z.number().optional(),
+    total_pieces: z.number().int().optional(),
+    total_weight_kg: z.number().optional(),
+    total_volume_cbm: z.number().optional(),
+    chargeable_weight_kg: z.number().optional(),
+    volumetric_coefficient_id: z.number().optional(),
+    max_length_cm: z.number().int().optional(),
+    max_width_cm: z.number().int().optional(),
+    max_height_cm: z.number().int().optional(),
+    owner_id: z.string().uuid().optional(),
+    status: z.enum(["DRAFT", "CONFIRMED", "ARCHIVED"]).optional(),
+    notes: z.string().optional(),
+    verified_by: z.string().uuid().optional(),
+  }),
+  allow: { list: true, get: true, create: true, update: true, delete: true },
+  rbac: ({ roles, method }) => (roles.includes("admin") ? true : method !== "DELETE"),
+};
+
+export default cargoMeasurements;
