@@ -44,7 +44,10 @@ const bookings: ResourceDefinition = {
     "declared_value_customs",
     "owner_id",
     "created_by",
-    "bookingReferenceType"
+    "bookingReferenceType",
+    "eawbDataId",
+    "isEAWB",
+    "eawbDocumentType"
   ],
   relations: [
     "booking_types",
@@ -53,7 +56,8 @@ const bookings: ResourceDefinition = {
     "location",
     "agents",
     "currency",
-    "cargo_measurements"
+    "cargo_measurements",
+    "booking_eawb_data"
   ],
   defaultOrder: { column: "createdAt", desc: true },
   createSchema: z.object({
@@ -93,6 +97,9 @@ const bookings: ResourceDefinition = {
     owner_id: z.string().uuid().optional(),
     created_by: z.string().uuid().optional(),
     bookingReferenceType: z.enum(["AIR_WAYBILL", "HOUSE_AIR_WAYBILL", "MASTER_AIR_WAYBILL"]).default("AIR_WAYBILL"),
+    eawbDataId: z.number().int().optional(),
+    isEAWB: z.boolean().default(false),
+    eawbDocumentType: z.enum(["EAW", "EAP", "ECC", "ECP"]).optional(),
   }),
   updateSchema: z.object({
     bookingType: z.string().optional(),
@@ -130,6 +137,9 @@ const bookings: ResourceDefinition = {
     declared_value_customs: z.number().optional(),
     owner_id: z.string().uuid().optional(),
     bookingReferenceType: z.enum(["AIR_WAYBILL", "HOUSE_AIR_WAYBILL", "MASTER_AIR_WAYBILL"]).optional(),
+    eawbDataId: z.number().int().optional(),
+    isEAWB: z.boolean().optional(),
+    eawbDocumentType: z.enum(["EAW", "EAP", "ECC", "ECP"]).optional(),
   }),
   allow: { list: true, get: true, create: true, update: true, delete: true },
   rbac: ({ roles, method }) => (roles.includes("admin") ? true : method !== "DELETE"),
