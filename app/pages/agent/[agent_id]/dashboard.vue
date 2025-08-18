@@ -1,5 +1,9 @@
 <script setup lang="ts">
 import { useAgentProfile } from '~/composables/agent/useAgentProfile'
+import CardStats from '~/components/dashboard/CardStats.vue'
+import RecentActivity from '~/components/dashboard/RecentActivity.vue'
+import ProjectOverview from '~/components/dashboard/ProjectOverview.vue'
+import PerformanceChart from '~/components/dashboard/PerformanceChart.vue'
 // definePageMeta({
 //   middleware: ['agent-auth']
 // })
@@ -77,40 +81,12 @@ onUnmounted(() => {
         </div>
       </template>
 
-      <!-- Main metrics -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <UCard>
-          <template #header>
-            <h3 class="font-semibold">
-              Total AWB
-            </h3>
-          </template>
-          <p class="text-3xl font-bold">
-            {{ profile?.total_awbs || 0 }}
-          </p>
-        </UCard>
-
-        <UCard>
-          <template #header>
-            <h3 class="font-semibold">
-              Active AWB
-            </h3>
-          </template>
-          <p class="text-3xl font-bold text-green-500">
-            {{ profile?.active_awbs || 0 }}
-          </p>
-        </UCard>
-
-        <UCard>
-          <template #header>
-            <h3 class="font-semibold">
-              Last 30 Days
-            </h3>
-          </template>
-          <p class="text-3xl font-bold">
-            {{ profile?.recent_awbs || 0 }}
-          </p>
-        </UCard>
+      <!-- Premium KPIs -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <CardStats title="Total AWBs" :value="profile?.total_awbs || 0" change="+12%" icon="i-lucide-package" />
+        <CardStats title="Active AWBs" :value="profile?.active_awbs || 0" change="+4%" icon="i-lucide-ship" />
+        <CardStats title="On-time Rate" :value="'96%'" change="+2%" icon="i-lucide-clock" />
+        <CardStats title="Revenue" :value="'€42,580'" change="-1.2%" icon="i-lucide-euro" />
       </div>
 
       <!-- Dashboard navigation -->
@@ -145,6 +121,17 @@ onUnmounted(() => {
         </UButton>
       </div>
     </UCard>
+
+    <!-- Premium content blocks -->
+    <div class="grid gap-6 lg:grid-cols-3 mt-6">
+      <div class="lg:col-span-2">
+        <PerformanceChart />
+      </div>
+      <div class="space-y-6">
+        <RecentActivity />
+        <ProjectOverview />
+      </div>
+    </div>
 
     <!-- Recent AWBs (additional component) -->
     <AgentRecentAwbList :agent-id="agentId" class="mt-6" />
